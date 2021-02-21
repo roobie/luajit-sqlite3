@@ -2,11 +2,12 @@
 -- A library for interfacing with SQLite3 databases.
 --
 -- Copyright (C) 2011-2016 Stefano Peluchetti. All rights reserved.
+-- Copyright (C) 2021 Björn Roberg. All rights reserved.
 --
--- Features, documentation and more: http://www.scilua.org .
+-- Features, documentation and more: https://github.com/roobie/luajit-sqlite3
 --
--- This file is part of the LJSQLite3 library, which is released under the MIT
--- license: full text in file LICENSE.TXT in the library's root folder.
+-- This file is part of the luajit-sqlite3 library, which is released under the
+-- MIT license: full text in file LICENSE.TXT in the library's root folder.
 --------------------------------------------------------------------------------
 
 -- TODO: Refactor according to latest style / coding guidelines.
@@ -20,9 +21,27 @@
 
 local ffi  = require "ffi"
 local bit  = require "bit"
-local xsys = require "xsys"
 
-local split, trim = xsys.string.split, xsys.string.trim
+local function split (str, separator)
+  separator = separator or '%s'
+  local t = {}
+
+  if str == "" or separator == "" then
+    return t
+  end
+
+  local pattern = string.format('([^%s]*)(%s?)', separator, separator)
+  for field, s in string.gmatch(str, pattern) do
+    table.insert(t, field)
+    if s == "" then
+      return t
+    end
+  end
+end
+
+function trim (s)
+  return s:gsub("^%s*(.-)%s*$", "%1")
+end
 
 local function err(code, msg)
   error("ljsqlite3["..code.."] "..msg)
@@ -488,6 +507,19 @@ function conn_mt:setaggregate(name, initstate, step, final) T_open(self)
   T_okcode(self._ptr, code)
   updatecb(self, "step", name, cbs) -- Update and clear old.
   updatecb(self, "final", name, cbf) -- Update and clear old.
+end
+
+--- Gets or sets an SQLite3 PRAGMA directive.
+--- @param name is the name of the PRAGMA, as documented here https://sqlite.org/pragma.html
+--- @param maybe_value will be used to set the value of the pragma, if not nil.
+function conn_mt:pragma (name, maybe_value)
+  assert(type(name) == "string" and #name > 0,
+         "Parameter `name' must be a string of non-zero length.")
+  if maybe_value then
+    return self:exec("PRAGMA "..name.."="..tostring(maybe_value))
+  else
+    return self:exec("PRAGMA "..name)
+  end
 end
 
 conn_ct = ffi.metatype("struct { sqlite3* _ptr; bool _closed; }", conn_mt)

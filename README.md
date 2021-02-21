@@ -1,7 +1,9 @@
-LJSQLite3: SQlite3 Interface
+luajit-sqlite3: SQLite3 bindings for luajit.
 ============================
 
 Pure LuaJIT binding for [SQLite3](http://sqlite.org) databases.
+
+Forked from https://github.com/stepelu/lua-ljsqlite3
 
 ## Features
 
@@ -12,19 +14,19 @@ Pure LuaJIT binding for [SQLite3](http://sqlite.org) databases.
 - results by row or by whole table
 
 ```lua
-local sql = require "ljsqlite3"
+local sql = require "luajit-sqlite3"
 local conn = sql.open("") -- Open a temporary in-memory database.
   
 -- Execute SQL commands separated by the ';' character:
-conn:exec[[
-CREATE TABLE t(id TEXT, num REAL);
-INSERT INTO t VALUES('myid1', 200);
+conn:exec [[
+  CREATE TABLE t(id TEXT, num REAL);
+  INSERT INTO t VALUES('myid1', 200);
 ]]
   
 -- Prepared statements are supported:
 local stmt = conn:prepare("INSERT INTO t VALUES(?, ?)")
-for i=2,4 do
-  stmt:reset():bind('myid'..i, 200*i):step()
+for i = 2, 4 do
+  stmt:reset():bind('myid'..i, 200 * i):step()
 end
   
 -- Command-line shell feature which here prints all records:
@@ -59,13 +61,8 @@ conn:close() -- Close stmt as well.
 
 ## Install
 
-This module is included in the [ULua](http://ulua.io) distribution, to install it use:
-```
-upkg add ljsqlite3
-```
-
-Alternatively, manually install this module making sure that all dependencies listed in the `require` section of [`__meta.lua`](__meta.lua) are installed as well (dependencies starting with `clib_` are standard C dynamic libraries).
+Copy the init.lua to your project and rename it to whatever you want, e.g. `sqlite3.lua`
 
 ## Documentation
 
-Refer to the [official documentation](http://scilua.org/ljsqlite3.html).
+> TBD
